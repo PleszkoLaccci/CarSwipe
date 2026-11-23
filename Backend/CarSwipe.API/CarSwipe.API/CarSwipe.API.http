@@ -1,0 +1,6 @@
+@CarSwipe.API_HostAddress = http://localhost:5067
+
+GET {{CarSwipe.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
