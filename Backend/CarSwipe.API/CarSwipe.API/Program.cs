@@ -7,6 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("CarSwipe");
 builder.Services.AddDbContext<CarSwipeContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
+    p.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod()));
 // Add services to the container.
 
 builder.Services.AddControllers();
