@@ -2,3 +2,8 @@
 .vs/
 bin/
 obj/
+*.user
+**/wwwroot/uploads/
+node_modules/
+dist/
+.env
