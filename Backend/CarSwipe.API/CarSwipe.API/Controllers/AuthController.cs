@@ -106,7 +106,7 @@ namespace CarSwipe.API.Controllers
         }
         private string CreateToken(User user)
         {
-            // 1. Mit írjunk bele a tokenbe?
+          
             var claims = new[]
             {
             new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
@@ -114,10 +114,10 @@ namespace CarSwipe.API.Controllers
             new Claim(ClaimTypes.Email, user.Email)
             };
 
-            // 2. A titkos kulcs az appsettings.json-ból
+          
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!));
 
-            // 3. A token összerakása
+           
             var token = new JwtSecurityToken(
                 issuer: config["Jwt:Issuer"],
                 audience: config["Jwt:Audience"],
@@ -125,7 +125,7 @@ namespace CarSwipe.API.Controllers
                 expires: DateTime.UtcNow.AddYears(1),   // 1 év
                 signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
 
-            // 4. Szöveggé alakítás
+            
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
