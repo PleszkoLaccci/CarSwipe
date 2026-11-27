@@ -2,8 +2,8 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Gép: 127.0.0.1:3306
--- Létrehozás ideje: 2026. Nov 18. 11:16
+-- Gép: 127.0.0.1
+-- Létrehozás ideje: 2026. Nov 23. 18:47
 -- Kiszolgáló verziója: 10.4.32-MariaDB
 -- PHP verzió: 8.2.12
 
@@ -20,6 +20,8 @@ SET time_zone = "+00:00";
 --
 -- Adatbázis: `carswipe`
 --
+CREATE DATABASE IF NOT EXISTS `carswipe` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_hungarian_ci;
+USE `carswipe`;
 
 -- --------------------------------------------------------
 
