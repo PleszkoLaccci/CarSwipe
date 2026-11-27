@@ -3,6 +3,11 @@ using CarSwipe.API.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
 
 namespace CarSwipe.API.Controllers
 {
@@ -11,10 +16,12 @@ namespace CarSwipe.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly CarSwipeContext adatbazis;
+        private readonly IConfiguration config;
 
-        public AuthController(CarSwipeContext db)
+        public AuthController(CarSwipeContext db, IConfiguration configuration)
         {
             adatbazis = db;
+            config = configuration;
         }
 
         [HttpPost("Register")]
@@ -32,7 +39,7 @@ namespace CarSwipe.API.Controllers
                 else
                 {
 
-                    if(await adatbazis.Users.AnyAsync(u => u.Email == registerDTO.Email))
+                    if (await adatbazis.Users.AnyAsync(u => u.Email == registerDTO.Email))
                     {
                         return Conflict(new
                         {
@@ -44,7 +51,7 @@ namespace CarSwipe.API.Controllers
                     {
                         Name = registerDTO.Name,
                         Email = registerDTO.Email,
-                        Password = registerDTO.Password
+                        Password = BCrypt.Net.BCrypt.HashPassword(registerDTO.Password)
                     };
 
                     await adatbazis.Users.AddAsync(registeruser);
@@ -71,7 +78,7 @@ namespace CarSwipe.API.Controllers
             {
                 var user = await adatbazis.Users.FirstOrDefaultAsync(u => u.Email == loginDTO.Email);
 
-                if (user == null || user.Password != loginDTO.Password)
+                if (user == null || !BCrypt.Net.BCrypt.Verify(loginDTO.Password, user.Password))
                 {
                     return Unauthorized(new
                     {
@@ -83,6 +90,7 @@ namespace CarSwipe.API.Controllers
                 return Ok(new
                 {
                     Message = "Sikeres bejelentkezés",
+                    Token = CreateToken(user),
                     UserId = user.UserId,
                     Name = user.Name,
                     Email = user.Email,
@@ -96,5 +104,29 @@ namespace CarSwipe.API.Controllers
                 });
             }
         }
-    } 
+        private string CreateToken(User user)
+        {
+            // 1. Mit írjunk bele a tokenbe?
+            var claims = new[]
+            {
+            new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+            new Claim(ClaimTypes.Name, user.Name),
+            new Claim(ClaimTypes.Email, user.Email)
+            };
+
+            // 2. A titkos kulcs az appsettings.json-ból
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!));
+
+            // 3. A token összerakása
+            var token = new JwtSecurityToken(
+                issuer: config["Jwt:Issuer"],
+                audience: config["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddYears(1),   // 1 év
+                signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
+
+            // 4. Szöveggé alakítás
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+    }
 }
